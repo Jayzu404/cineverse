@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'; // <--- This was missing!
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -6,14 +6,18 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                    'resources/css/app.css', 'resources/js/app.js',
-                    'resources/js/pages/home.js',
-                    'resources/js/pages/trending-movies.js',
-                ],
+                'resources/css/app.css', 
+                'resources/js/app.js',
+                'resources/js/pages/home.js',
+                // 'resources/js/pages/trending-movies.js', 
+            ],
             refresh: true,
         }),
         tailwindcss(),
     ],
+    optimizeDeps: {
+        exclude: ['lightningcss'] 
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

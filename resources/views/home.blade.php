@@ -7,6 +7,6 @@
   <x-trending-trailers />
 
   @push('script')
-    @vite('resources/js/pages/movie/home.js')
+    @vite('resources/js/pages/home.js')
   @endpush
 @endsection

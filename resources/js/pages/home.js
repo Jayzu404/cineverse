@@ -1,11 +1,12 @@
-import { fetchTrendingMovies, fetchTopRatedMovies, getTrailerLink } from '../../api/movieService.js';
-import { renderMovies } from '../../utils/renderMovies.js';
+import { fetchTrendingMovies, fetchTopRatedMovies, getTrailerLink } from '../api/movieService.js';
+import { renderMovies } from '../utils/renderMovies.js';
 
 const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 const videoModalCloseBtn = document.getElementById('vd-modal-close');
 const modalIframe  = document.querySelector('#video-modal iframe');
 const videoModalBackdrop = document.getElementById('video-modal-backdrop');
 const spinner = document.getElementById('spinner');
+const trailerLoadingSkeleton = document.getElementById('trailer-skeleton-cards');
 
 // Containers for different sections
 const containers = {
@@ -77,9 +78,8 @@ function changeTrailerSectionBg(backdropPath) {
  * @param {Array<Object>} trendingMovies - Array of trending movie objects
  */
 async function renderTrailers(trendingMovies) {
-  const firstTrailerBackdropPath = trendingMovies[0].backdrop_path;
-  containers.trendingTrailers.style.backgroundImage = `url(${IMAGE_URL}${firstTrailerBackdropPath})`;
-
+  let firstTrailerLoaded = false;
+  
   const trailerPromise = trendingMovies.map(async (movie) =>
   {
     try
@@ -91,7 +91,13 @@ async function renderTrailers(trendingMovies) {
         return;
       }
 
-      renderSingleTrailer(trailerLink, movie);
+      await renderSingleTrailer(trailerLink, movie);
+
+      if (!firstTrailerLoaded) {
+        firstTrailerLoaded = true;
+        hideTrailerSkeletonLoader();
+        setTrailerInitialBackground(movie.backdrop_path);
+      }
     }
     catch (err) {
       console.error(`Failed to load trailer for movie id: ${movie.id} -`, err);
@@ -100,6 +106,14 @@ async function renderTrailers(trendingMovies) {
 
   await Promise.allSettled(trailerPromise);
 }  
+
+function hideTrailerSkeletonLoader() {
+  trailerLoadingSkeleton.classList.add('hidden');
+}
+
+function setTrailerInitialBackground(firstTrailerBackdropPath) {
+  containers.trendingTrailers.style.backgroundImage = `url(${IMAGE_URL}${firstTrailerBackdropPath})`;
+}
 
 /**
  * Render single movie trailer
@@ -113,6 +127,7 @@ async function renderSingleTrailer(trailerLink, movie){
   trailerCard.classList.add('trailer-card', 'relative', 'h-[180px]', 'w-[300px]', 'shrink-0');
   const overlay = document.createElement('div');
   overlay.classList.add('video-overlay', 'absolute', 'inset-0', 'bg-zinc-100', 'cursor-pointer', 'opacity-0');
+
   const iframe = document.createElement('iframe');
   iframe.width = "100%";
   iframe.height = "100%";
@@ -121,9 +136,10 @@ async function renderSingleTrailer(trailerLink, movie){
   iframe.allowFullscreen = true;
   iframe.loading = "lazy";
   iframe.style.borderRadius = "12px";
+
   trendingTrailersContainer.appendChild(trailerCard);
   trailerCard.appendChild(overlay);
-  trailerCard.appendChild(iframe);
+  trailerCard.appendChild(iframe); 
 
   overlay.addEventListener('click', () => {
     openVideoModal(trailerLink);
@@ -131,7 +147,11 @@ async function renderSingleTrailer(trailerLink, movie){
 
   overlay.addEventListener('mouseover', () => {
     changeTrailerSectionBg(movie.backdrop_path);
-  });
+  }); 
+
+  return new Promise((resolve) => {
+    iframe.onload = () => resolve();  
+  })
 }
 
 async function initTopRatedMovies(){
