@@ -1,5 +1,7 @@
-export function renderMovies(movieContainer, movies) {
-  movieContainer.innerHTML = '';
+const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+
+export function renderMovies(movieCardContainer, movies) {
+  movieCardContainer.innerHTML = '';
 
   movies.forEach((movie) => {
     let movieCard = document.createElement('div');
@@ -12,6 +14,6 @@ export function renderMovies(movieContainer, movies) {
       <p>${movie.release_date}</p>
     `;
 
-    movieContainer.appendChild(movieCard);
+    movieCardContainer.appendChild(movieCard);
   });
 }

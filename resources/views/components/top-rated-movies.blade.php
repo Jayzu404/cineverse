@@ -1,11 +1,11 @@
-<section class="bg-red-950 relative p-5 top-rated-movies"> {{-- style="background-image: url('{{ asset('images/cineverse-home-bg.jpg') }}')" --}}
-  {{-- <div class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div> --}}
+<section class="bg-red-950 relative p-5 top-rated-movies">
   <div class="relative z-10">
     <div class="px-5 flex justify-between">
       <h2 class="text-xl mb-5">Top Rated Movies</h2>
       <h2 class="cursor-pointer">view all &rarr;</h2>
     </div>
-    <div class="flex gap-4 card-container overflow-x-auto scrollbar-hide">
+
+    <div class="movie-card-container flex gap-4 scrollbar-hide overflow-x-auto">
       {{-- Top rated movies dynamically loaded here --}}
 
       <!-- Loading Skeleton -->

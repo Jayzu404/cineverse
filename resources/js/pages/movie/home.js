@@ -1,5 +1,5 @@
 import { fetchTrendingMovies, fetchTopRatedMovies, getTrailerLink } from '../../api/movieService.js';
-// import { renderMovies } from '../../utils/renderMovies.js';
+import { renderMovies } from '../../utils/renderMovies.js';
 
 const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 const videoModalCloseBtn = document.getElementById('vd-modal-close');
@@ -11,9 +11,11 @@ const spinner = document.getElementById('spinner');
 const containers = {
   trendingMovies: document.querySelector('.trending-movies'),
   topRatedMovies: document.querySelector('.top-rated-movies'),
-  trendingTrailers: document.querySelector('.trending-trailers')
+  trendingTrailers: document.querySelector('.trending-trailers'),
+  trendingMovieCard: document.querySelector('.trending-movies .movie-card-container'),
+  topRatedMovieCard: document.querySelector('.top-rated-movies .movie-card-container')
 };
-// ==========================
+// ========================== 
 
 /**
  * Display error message for specific container
@@ -62,45 +64,6 @@ function openVideoModal(trailerLink) {
   modalIframe.onload = () => {
     spinner.classList.add('hidden'); // hide spinner when iframe is loaded
   };
-}
-
-function renderTrendingMovies(movies) {
-  const movieCardContainer = document.querySelector('.movie-card-container');
-  movieCardContainer.innerHTML = '';
-
-
-  movies.forEach((movie) => {
-    let movieCard = document.createElement('div');
-    movieCard.classList.add('movie-card', 'w-[200px]', 'shrink-0');
-
-    movieCard.innerHTML = `
-      <img src="${IMAGE_URL}${movie.poster_path}" width="100%" alt="${movie.title}" loading="lazy">
-      <h3 class='mt-2'>${movie.title}</h3>
-      <p>⭐ ${movie.vote_average.toFixed(1)}</p>
-      <p>${movie.release_date}</p>
-    `;
-
-    movieCardContainer.appendChild(movieCard);
-  });
-}
-
-function renderTopRatedMovies(movies){
-  const topRatedMoviesContainer = document.querySelector('.card-container');
-  topRatedMoviesContainer.innerHTML = '';
-
-  movies.forEach(movie => {
-    let topRatedMovieCard = document.createElement('div');
-    topRatedMovieCard.classList.add('movie-card', 'w-[200px]', 'shrink-0');
-    
-    topRatedMovieCard.innerHTML = `
-      <img src="${IMAGE_URL}${movie.poster_path}" alt="${movie.title}" loading="lazy">
-      <h3 class="mt-2">${movie.title}</h3>
-      <p>⭐ ${movie.vote_average.toFixed(1)}</p>
-      <p>${movie.release_date}</p>
-    `;
-
-    topRatedMoviesContainer.appendChild(topRatedMovieCard);
-  });
 }
 
 // Helpers for changing background image of trailer section
@@ -174,18 +137,18 @@ async function renderSingleTrailer(trailerLink, movie){
 async function initTopRatedMovies(){
   try {
     const data = await fetchTopRatedMovies();
-    (data.movieData);
+    renderMovies(containers.topRatedMovieCard, data.movieData);
   }
   catch (err) {
     console.error('Something went wrong ', err);
-    errorForContainer(containers.trendingMovies, 'Unable to load top rated movies.');
+    errorForContainer(containers.topRatedMovies, 'Unable to load top rated movies.');
   }
 }
 
 async function initTrendingMovies(){
   try {
     const data = await fetchTrendingMovies();
-    renderTrendingMovies(data.movieData);
+    renderMovies(containers.trendingMovieCard, data.movieData);
   }
   catch (err) {
     console.error('Something went wrong ', err);
