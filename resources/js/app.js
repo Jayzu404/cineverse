@@ -153,6 +153,10 @@ export function renderTvShows(tvShows) {
   });
 }
 
+export function renderPeople() {
+  
+}
+
 /**
  * @param {function} fetchFunction - function for fetching specific movies (latest, trending etc.)
  */

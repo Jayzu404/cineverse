@@ -1,0 +1,1 @@
+import { fetchPopularPeople } from '../../api/peopleService';

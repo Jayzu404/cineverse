@@ -80,22 +80,21 @@ function changeTrailerSectionBg(backdropPath) {
 async function renderTrailers(trendingMovies) {
   let firstTrailerLoaded = false;
   
-  const trailerPromise = trendingMovies.map(async (movie) =>
+  const trailerPromises = trendingMovies.map(async (movie) =>
   {
     try
     {
       const trailerLink = await getTrailerLink(movie.id);
 
       // return if trailer link is undefined (some movies don't have trailer)
-      if (!trailerLink) {
-        return;
-      }
+      if (!trailerLink) return null;
 
       await renderSingleTrailer(trailerLink, movie);
 
       if (!firstTrailerLoaded) {
         firstTrailerLoaded = true;
         hideTrailerSkeletonLoader();
+        console.log(movie.title);
         setTrailerInitialBackground(movie.backdrop_path);
       }
     }
@@ -104,8 +103,8 @@ async function renderTrailers(trendingMovies) {
     }
   })
 
-  await Promise.allSettled(trailerPromise);
-}  
+  await Promise.allSettled(trailerPromises);
+}
 
 function hideTrailerSkeletonLoader() {
   trailerLoadingSkeleton.classList.add('hidden');
@@ -118,7 +117,7 @@ function setTrailerInitialBackground(firstTrailerBackdropPath) {
 /**
  * Render single movie trailer
  * @param {string} trailerLink - iframe src link
- * @param {object} movie - movie object that contains all info (title, backfrop_path etc.)
+ * @param {object} movie - movie object that contains all info (title, backdrop_path etc.)
  */
 async function renderSingleTrailer(trailerLink, movie){
   const trendingTrailersContainer = document.getElementById('trending-trailers-container');
