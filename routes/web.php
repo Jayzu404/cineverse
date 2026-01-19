@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\TvShowController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,3 +47,11 @@ Route::get('/tv/top-rated', function () {
 })->name('tv.top-rated');
 
 Route::get('/api/tv-show', [TvShowController::class, 'index'])->name('api.tv-show');
+
+Route::get('/people/popular', function () {
+    return view('pages.peoples.popular');
+})->name('people.popular');
+
+Route::get('/api/people', [PeopleController::class, 'index']);
+
+Route::get('/movie/{id}-{slugTitle}', [MovieController::class, 'show']);

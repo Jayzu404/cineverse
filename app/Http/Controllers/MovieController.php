@@ -4,18 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class MovieController extends Controller
 {
-    private $BASE_URL = 'https://api.themoviedb.org/3/movie';
-    // private $API_KEY = env('TMDB_API_KEY');
+    private const BASE_URL = 'https://api.themoviedb.org/3/movie';
+    private const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
     public function index(Request $request)
     {
         $page = $request->query('page', 1);
         $category = $request->query('category', 'popular');
 
-        $response = Http::get("{$this->BASE_URL}/{$category}", [
+        $response = Http::get(self::BASE_URL . "/{$category}", [
             'api_key' => env('TMDB_API_KEY'),
             'page' => $page
         ]);
@@ -36,21 +37,99 @@ class MovieController extends Controller
 
     public function movieTrailer($movieId) 
     {
-        $response = Http::get("$this->BASE_URL/{$movieId}/videos", ['api_key' => env('TMDB_API_KEY')]);
+        $response = Http::get(self::BASE_URL . "/{$movieId}/videos", ['api_key' => env('TMDB_API_KEY')]);
 
         return $response->json();
+    }
 
-        // $data = $response->json();
-        // $trailer = collect($data['results'])->firstWhere(function ($video) {
-        //     return $video['type'] === 'Trailer' && $video['site'] === 'YouTube';
-        // });
-    
-        // if ($trailer) {
-        //     return response()->json([
-        //         'url' => "https://www.youtube.com/embed/{$trailer['key']}"
-        //     ]);
-        // }
-    
-        // return response()->json(['url' => null], 404);
+    public function show(int $id, string $slugTitle)
+    {
+        $imageBaseUrl = self::IMAGE_BASE_URL;
+        $movieData = $this->getMovieDataById($id);
+        $movieCredit = $this->getMovieCredit($id);
+        $contentRate = $this->getContentRating($id);
+        $releaseYear = $this->getMovieReleaseYear($id);
+        $runtime = $this->getMovieRuntime($id);
+
+        return view('pages.movies.detail.movie-detail', compact('id', 'slugTitle', 'movieData', 'movieCredit', 'contentRate', 'imageBaseUrl', 'releaseYear', 'runtime'));
+    }
+
+    private function getMovieDataById(int $id)
+    {
+        $response = Http::get(self::BASE_URL . "/{$id}", ['api_key' => env('TMDB_API_KEY')]);
+
+        return $response->json();
+    }
+
+    private function getMovieCredit(int $id)
+    {
+        $response = Http::get(self::BASE_URL . "/{$id}/credits", ['api_key' => env('TMDB_API_KEY')]);
+
+        return $response->json();
+    }
+
+    private function getContentRating(int $id): string
+    {
+        $response = Http::get(self::BASE_URL . "/{$id}/release_dates", ['api_key' => env('TMDB_API_KEY')]);
+        $releaseDateData = $response->json();
+
+        if (empty($releaseDateData['results'])) {
+            return 'Not Rated';
+        }
+
+        $fallback = null;
+
+        // Priority 1: US theatrical release (type 3)
+        foreach ($releaseDateData['results'] as $data) {
+            if ($data['iso_3166_1'] === 'US') {
+                foreach ($data['release_dates'] as $release) {
+                    if (!empty($release['certification'])) {
+                        if ($release['type'] === 3) {
+                            return $release['certification'];
+                        }
+                        // $fallback = $release['certification']; if i want the last
+                        $fallback ??= $release['certification']; // preserve the first value only
+                    }
+                }
+            }
+        }
+            
+        // Priority 2: Any country's theatrical release (type 3)
+        foreach ($releaseDateData['results'] as $data) {
+            foreach ($data['release_dates'] as $release) {
+                if (!empty($release['certification'])) {
+                    if ($release['type'] === 3) {
+                        return $release['certification'];
+                    }
+                    $fallback ??= $release['certification'];
+                }
+            }
+        }
+
+        return $fallback ?? 'Not Rated';
+    }
+
+    private function getMovieRuntime(int $id): string
+    {
+        $movieData = $this->getMovieDataById($id);
+        $movieRuntimeInMin = $movieData['runtime'];
+
+        $hours   = floor($movieRuntimeInMin / 60);
+        $minutes = $movieRuntimeInMin % 60;
+
+        $formatted = "{$hours}h {$minutes}m";
+
+        return $formatted;
+    }
+
+    private function getMovieReleaseYear(int $id):int
+    {
+        $movieData = $this->getMovieDataById($id);
+
+        $releaseDate = $movieData['release_date'];
+
+        $year = Carbon::parse($releaseDate)->year;
+
+        return $year;
     }
 }

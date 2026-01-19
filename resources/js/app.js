@@ -1,10 +1,12 @@
 import './bootstrap';
+import { slugify } from './utils/slug';
 
 const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
 const elements = {
   movieListContainer: document.querySelector('.movie-list-container'),
   tvShowListContainer: document.querySelector('.tv-show-list-container'),
+  peopleListContainer: document.querySelector('.people-list-container'),
   movieFilter: document.querySelector('.filter-wrapper .filter'),
   pagination: document.getElementById('pagination'),
   pageIndicator: document.getElementById('pageIndicator'),
@@ -99,6 +101,36 @@ export async function loadTvShowsForPage(fetchFunction, page) {
   finally {
     paginationState.isLoading = false;
   }
+} 
+
+export async function loadPeopleForPage(fetchFunction, page) {
+  if (paginationState.isLoading) {
+    console.log('Already loading, please wait...');
+    return;
+  } 
+
+  // set to laoding state
+  paginationState.isLoading = true;
+
+  elements.loadingSpinner.classList.remove('hidden');
+  elements.pagination.classList.add('hidden');
+  elements.peopleListContainer.innerHTML = '';
+
+  try {
+    const data = await fetchFunction(page);
+
+    paginationState.currentPage = data.currentPage;
+    paginationState.totalPages = data.totalPages;
+
+    renderPeople(data.peopleData);
+    updatePaginationUI();
+  } 
+  catch (err) {
+    console.error('Something went wrong.', err);
+  }
+  finally {
+    paginationState.isLoading = false;
+  }
 }
 
 /**
@@ -106,8 +138,6 @@ export async function loadTvShowsForPage(fetchFunction, page) {
  * @param {Array} movies - Array of movie objects
  */
 export function renderMovies(movies) {
-  elements.movieListContainer.innerHTML = '';
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   elements.loadingSpinner.classList.add('hidden');
@@ -115,12 +145,17 @@ export function renderMovies(movies) {
   elements.pagination.classList.remove('hidden');
 
   movies.forEach(movie => {
+    const slugTitle = slugify(movie.title);
+    const slugUrl = `/movie/${movie.id}-${slugTitle}`;
+
     const movieCard = document.createElement('div');
     movieCard.classList.add('shrink-0', 'rounded-sm', 'overflow-hidden');
 
     movieCard.innerHTML = `
-      <img src="${IMAGE_URL}/${movie.poster_path}" alt="${movie.title}" loading="lazy" class="w-full h-auto">
-      <h3 class="text-sm">${movie.title}</h3>
+      <a href="${slugUrl}" class="cursor-pointer block">
+        <img src="${IMAGE_URL}/${movie.poster_path}" alt="${movie.title}" loading="lazy" class="w-full h-auto">
+        <h3 class="inline text-sm hover:underline">${movie.title}</h3>
+      </a>
       <p class="text-sm">⭐ ${movie.vote_average.toFixed(1)}</p>
       <p class="text-sm">${movie.release_date}</p>
     `;
@@ -130,8 +165,6 @@ export function renderMovies(movies) {
 }
 
 export function renderTvShows(tvShows) {
-  elements.tvShowListContainer.innerHTML = '';
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   elements.loadingSpinner.classList.add('hidden');
@@ -139,12 +172,17 @@ export function renderTvShows(tvShows) {
   elements.pagination.classList.remove('hidden');
 
   tvShows.forEach(tvShow => {
+    const slugTitle = slugify(tvShow.name);
+    const slugUrl = `/tv/${tvShow.id}-${slugTitle}`;
+
     const movieCard = document.createElement('div');
     movieCard.classList.add('shrink-0', 'rounded-sm', 'overflow-hidden');
 
     movieCard.innerHTML = `
-      <img src="${IMAGE_URL}/${tvShow.poster_path}" alt="${tvShow.name}" loading="lazy" class="w-full h-auto">
-      <h3 class="text-sm">${tvShow.name}</h3>
+      <a href="${slugUrl}" class="cursor-pointer block">
+        <img src="${IMAGE_URL}/${tvShow.poster_path}" alt="${tvShow.name}" loading="lazy" class="w-full h-auto">
+        <h3 class="inline text-sm hover:underline">${tvShow.name}</h3>
+      </a>
       <p class="text-sm">⭐ ${tvShow.vote_average.toFixed(1)}</p>
       <p class="text-sm">${tvShow.first_air_date}</p>
     `;
@@ -153,8 +191,23 @@ export function renderTvShows(tvShows) {
   });
 }
 
-export function renderPeople() {
-  
+export function renderPeople(people) {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  elements.loadingSpinner.classList.add('hidden');
+  elements.pagination.classList.remove('hidden');
+
+  people.forEach(person => {
+    const personCard = document.createElement('div');
+    personCard.classList.add('shrink-0', 'rounded-sm', 'overflow-hidden');
+
+    personCard.innerHTML = `
+      <img src="${IMAGE_URL}/${person.profile_path }" alt="${person.name}" loading="lazy" class="w-full h-auto">
+      <h3 class="text-sm">${person.name}</h3>
+    `;
+
+    elements.peopleListContainer.appendChild(personCard);
+  });
 }
 
 /**
@@ -214,6 +267,15 @@ export async function initMovie(fetchFunction) {
 export async function initTvShow(fetchFunction) {
   try {
     await loadTvShowsForPage(fetchFunction, 1);
+  }
+  catch (err) {
+    console.error('Something went wrong', err);
+  }
+}
+
+export async function initPeople(fetchFunction) {
+  try {
+    await loadPeopleForPage(fetchFunction, 1);
   }
   catch (err) {
     console.error('Something went wrong', err);

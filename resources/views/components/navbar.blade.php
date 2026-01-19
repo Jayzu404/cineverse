@@ -24,8 +24,7 @@
         <li class="hover:bg-red-800"><a class="block" href="{{ route('tv.top-rated') }}">Top Rated</a></li>
       </ul>
     </li>
-    <li class="max-[1040px]:hidden"><a href="">Top IMDB</a></li>
-    <li class="max-[1040px]:hidden"><a href="">People</a></li>
+    <li class="max-[1040px]:hidden"><a href="{{ route('people.popular') }}">People</a></li>
     <li class="max-[1040px]:hidden"><a href=""><i class="fa-solid fa-arrow-right-from-bracket"></i></a></li>
     <li class="max-[1040px]:block hidden"><a href="">
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 960 960" fill="currentColor">
