@@ -21,16 +21,16 @@ class MovieController extends Controller
             'page' => $page
         ]);
 
-        // $data = $response->json();
+        $data = $response->json();
 
-        // if ($category === 'latest') {
-        //     return response()->json([
-        //         'results' => $data ? [$data] : [],
-        //         'page' => 1,
-        //         'total_pages' => 1,
-        //         'total_results' => $data ? 1 : 0
-        //     ]);
-        // }
+        if ($category === 'latest') {
+            return response()->json([
+                'results' => $data ? [$data] : [],
+                'page' => 1,
+                'total_pages' => 1,
+                'total_results' => $data ? 1 : 0
+            ]);
+        }
 
         return $response->json();
     }
@@ -45,23 +45,29 @@ class MovieController extends Controller
     public function show(int $id, string $slugTitle)
     {
         $imageBaseUrl = self::IMAGE_BASE_URL;
-        $movieData = $this->getMovieDataById($id);
-        $movieCredit = $this->getMovieCredit($id);
-        $contentRate = $this->getContentRating($id);
-        $releaseYear = $this->getMovieReleaseYear($id);
-        $runtime = $this->getMovieRuntime($id);
 
-        return view('pages.movies.detail.movie-detail', compact('id', 'slugTitle', 'movieData', 'movieCredit', 'contentRate', 'imageBaseUrl', 'releaseYear', 'runtime'));
+        $movieData = $this->getMovieDataById($id);
+
+        $movieCredits = $this->getMovieCredit($id);
+
+        // release date data
+        $contentRate = $this->getContentRating($id);
+        $releaseYear = $this->getMovieReleaseYear($movieData);
+        $runtime = $this->getMovieRuntime($movieData);
+
+        $movieCasts = $this->getMovieCastsData($movieCredits);
+
+        return view('pages.movies.detail.movie-detail', compact('id', 'slugTitle', 'movieData', 'movieCredits', 'contentRate', 'imageBaseUrl', 'releaseYear', 'runtime'));
     }
 
-    private function getMovieDataById(int $id)
+    private function getMovieDataById(int $id): array
     {
         $response = Http::get(self::BASE_URL . "/{$id}", ['api_key' => env('TMDB_API_KEY')]);
 
         return $response->json();
     }
 
-    private function getMovieCredit(int $id)
+    public function getMovieCredit(int $id)
     {
         $response = Http::get(self::BASE_URL . "/{$id}/credits", ['api_key' => env('TMDB_API_KEY')]);
 
@@ -109,9 +115,8 @@ class MovieController extends Controller
         return $fallback ?? 'Not Rated';
     }
 
-    private function getMovieRuntime(int $id): string
+    private function getMovieRuntime(array $movieData): string
     {
-        $movieData = $this->getMovieDataById($id);
         $movieRuntimeInMin = $movieData['runtime'];
 
         $hours   = floor($movieRuntimeInMin / 60);
@@ -122,14 +127,17 @@ class MovieController extends Controller
         return $formatted;
     }
 
-    private function getMovieReleaseYear(int $id):int
+    private function getMovieReleaseYear(array $movieData):int
     {
-        $movieData = $this->getMovieDataById($id);
-
         $releaseDate = $movieData['release_date'];
 
         $year = Carbon::parse($releaseDate)->year;
 
         return $year;
+    }
+
+    private function getMovieCastsData(array $movieCredits):array
+    {
+        return $movieCredits['cast'];
     }
 }

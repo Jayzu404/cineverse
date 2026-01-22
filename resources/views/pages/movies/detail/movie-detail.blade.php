@@ -74,8 +74,8 @@
                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-neutral-800">
                     <div>
                       <div class="text-xs text-neutral-400 mb-1">Director</div>
-                        @if(isset($movieCredit['crew']) && !empty($movieCredit['crew']))
-                          @foreach($movieCredit['crew'] as $crew)
+                        @if(isset($movieCredits['crew']) && !empty($movieCredist['crew']))
+                          @foreach($movieCredits['crew'] as $crew)
                             @if($crew['job'] === 'Director')
                               <div class="font-semibold text-sm">{{ $crew['name'] }}</div>
                             @endif
@@ -84,8 +84,8 @@
                     </div>
                     <div>
                         <div class="text-xs text-neutral-400 mb-1">Screenplay</div>
-                          @if(isset($movieCredit['crew']) && !empty($movieCredit['crew']))
-                            @foreach($movieCredit['crew'] as $crew)
+                          @if(isset($movieCredits['crew']) && !empty($movieCredits['crew']))
+                            @foreach($movieCredits['crew'] as $crew)
                               @if($crew['job'] === 'Screenplay')
                                 <div class="font-semibold text-sm">{{ $crew['name'] }}</div>
                               @endif
@@ -112,5 +112,22 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="bg-white p-6">
+    <h3 class="text-xl font-semibold text-black ml-1 leading-none">Casts</h3>
+
+    <div class="casts-list flex gap-5 overflow-x-scroll scrollbar-hide flex-1 px-1 py-2">
+        @foreach($movieCredits['cast'] as $cast)
+            <div class="card shrink-0 w-[160px] rounded-xl overflow-hidden shadow-md">
+                <img src="https://image.tmdb.org/t/p/w500/{{ $cast['profile_path'] }}" alt="{{ $cast['name'] }}" loading="lazy" class="h-auto w-full object-contain">        
+
+                <div class="actor-character p-3 bg-white">
+                    <p class="actor font-semibold text-neutral-900">{{ $cast['name'] }}</p>
+                    <p class="character text-xs text-neutral-600">{{ $cast['character'] }}</p>
+                </div>
+            </div>
+        @endforeach
     </div>
 </div>

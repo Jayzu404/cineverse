@@ -9,6 +9,16 @@ Route::get('/', function () {
     return view('home');
 });
 
+// Route::get('/', function () {
+//     dd('route reached');
+// });
+
+// Route::get('/', function () {
+//     logger('Route reached');
+//     return app(\App\Http\Controllers\HomeController::class)->index();
+// });
+
+
 Route::get('/movies/popular', function () {
     return view('pages.movies.popular');
 })->name('movies.popular');
