@@ -9,12 +9,17 @@ class TvShowController extends Controller
 {
     private $BASE_URL = 'https://api.themoviedb.org/3/tv';
 
+    private function tmdb()
+    {
+        return Http::timeout(5)->retry(2, 200);
+    }
+
     public function index(Request $request) 
     {
         $page = $request->query('page');
         $category = $request->query('category');
 
-        $response = Http::get("{$this->BASE_URL}/{$category}", [
+        $response = $this->tmdb()->get("{$this->BASE_URL}/{$category}", [
             'api_key'  => env('TMDB_API_KEY'),
             'page'     => $page,
         ]);

@@ -3,20 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use App\Service\TmdbService;
 
 class MovieController extends Controller
 {
     private const BASE_URL = 'https://api.themoviedb.org/3/movie';
     private const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
+    public function __construct(private TmdbService $tmdb){}
+
     public function index(Request $request)
     {
         $page = $request->query('page', 1);
         $category = $request->query('category', 'popular');
+        
 
-        $response = Http::get(self::BASE_URL . "/{$category}", [
+        $response = $this->tmdb->get(self::BASE_URL . "/{$category}", [
             'api_key' => env('TMDB_API_KEY'),
             'page' => $page
         ]);
@@ -37,7 +40,7 @@ class MovieController extends Controller
 
     public function movieTrailer($movieId) 
     {
-        $response = Http::get(self::BASE_URL . "/{$movieId}/videos", ['api_key' => env('TMDB_API_KEY')]);
+        $response = $this->tmdb->get(self::BASE_URL . "/{$movieId}/videos", ['api_key' => env('TMDB_API_KEY')]);
 
         return $response->json();
     }
@@ -62,21 +65,21 @@ class MovieController extends Controller
 
     private function getMovieDataById(int $id): array
     {
-        $response = Http::get(self::BASE_URL . "/{$id}", ['api_key' => env('TMDB_API_KEY')]);
+        $response = $this->tmdb->get(self::BASE_URL . "/{$id}", ['api_key' => env('TMDB_API_KEY')]);
 
         return $response->json();
     }
 
     public function getMovieCredit(int $id)
     {
-        $response = Http::get(self::BASE_URL . "/{$id}/credits", ['api_key' => env('TMDB_API_KEY')]);
+        $response = $this->tmdb->get(self::BASE_URL . "/{$id}/credits", ['api_key' => env('TMDB_API_KEY')]);
 
         return $response->json();
     }
 
     private function getContentRating(int $id): string
     {
-        $response = Http::get(self::BASE_URL . "/{$id}/release_dates", ['api_key' => env('TMDB_API_KEY')]);
+        $response = $this->tmdb->get(self::BASE_URL . "/{$id}/release_dates", ['api_key' => env('TMDB_API_KEY')]);
         $releaseDateData = $response->json();
 
         if (empty($releaseDateData['results'])) {
