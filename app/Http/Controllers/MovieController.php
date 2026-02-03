@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\Service\TmdbService;
+use App\Services\TmdbService;
 
 class MovieController extends Controller
 {
@@ -121,6 +121,10 @@ class MovieController extends Controller
     private function getMovieRuntime(array $movieData): string
     {
         $movieRuntimeInMin = $movieData['runtime'];
+
+        if (empty($movieRuntimeInMin)) {
+            return 'N/A';
+        }
 
         $hours   = floor($movieRuntimeInMin / 60);
         $minutes = $movieRuntimeInMin % 60;
