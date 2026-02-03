@@ -60,4 +60,11 @@ class TmdbService
     {
         return $this->get("/tv/{$category}", $params)->throw();
     }
+
+    // ========== PUBLIC PEOPLE API ============ //
+
+    public function people($category, array $params = [])
+    {
+        return $this->get("/person/{$category}", $params)->throw();
+    }
 }
