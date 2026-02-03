@@ -37,7 +37,7 @@ Route::get('/movies/top-rated', function () {
     return view('pages.movies.top-rated');
 })->name('movies.top-rated');
 
-Route::get('/api/movie/{movieId}', [MovieController::class, "movieTrailer"]);
+Route::get('/api/movie/{movieId}', [MovieController::class, "getMovieTrailer"]);
 
 
 Route::get('/tv/popular', function () {

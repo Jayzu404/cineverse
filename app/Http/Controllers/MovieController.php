@@ -8,9 +8,6 @@ use App\Services\TmdbService;
 
 class MovieController extends Controller
 {
-    private const BASE_URL = 'https://api.themoviedb.org/3/movie';
-    private const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-
     public function __construct(private TmdbService $tmdb){}
 
     public function index(Request $request)
@@ -19,10 +16,7 @@ class MovieController extends Controller
         $category = $request->query('category', 'popular');
         
 
-        $response = $this->tmdb->get(self::BASE_URL . "/{$category}", [
-            'api_key' => env('TMDB_API_KEY'),
-            'page' => $page
-        ]);
+        $response = $this->tmdb->movie($category, ['page' => $page]);
 
         $data = $response->json();
 
@@ -38,58 +32,47 @@ class MovieController extends Controller
         return $response->json();
     }
 
-    public function movieTrailer($movieId) 
+    public function getMovieTrailer($movieId) 
     {
-        $response = $this->tmdb->get(self::BASE_URL . "/{$movieId}/videos", ['api_key' => env('TMDB_API_KEY')]);
-
-        return $response->json();
+        return $this->tmdb->movieTrailer($movieId)->json();
     }
 
     public function show(int $id, string $slugTitle)
     {
-        $imageBaseUrl = self::IMAGE_BASE_URL;
+        $imageBaseUrl = $this->tmdb->image_base_url;
 
-        $movieData = $this->getMovieDataById($id);
+        $movieDetails = $this->tmdb->movieDetails($id)->json();
+        $releaseDate = $this->tmdb->releaseDate($id)->json();
+        $credits = $this->tmdb->movieCredit($id)->json();
 
-        $movieCredits = $this->getMovieCredit($id);
+        $contentRate = $this->resolveContentRating($releaseDate);
+        $releaseYear = $this->resolveReleaseYear($movieDetails);
+        $runtime = $this->resolveRuntime($movieDetails);
 
-        // release date data
-        $contentRate = $this->getContentRating($id);
-        $releaseYear = $this->getMovieReleaseYear($movieData);
-        $runtime = $this->getMovieRuntime($movieData);
+        $movieCasts = $this->getMovieCastsData($credits);
 
-        $movieCasts = $this->getMovieCastsData($movieCredits);
-
-        return view('pages.movies.detail.movie-detail', compact('id', 'slugTitle', 'movieData', 'movieCredits', 'contentRate', 'imageBaseUrl', 'releaseYear', 'runtime'));
+        return view('pages.movies.detail.movie-detail', 
+                    compact(
+                        'id',
+                        'slugTitle',
+                        'movieDetails', 
+                        'credits', 
+                        'contentRate', 
+                        'imageBaseUrl', 
+                        'releaseYear', 
+                        'runtime'));
     }
 
-    private function getMovieDataById(int $id): array
+    private function resolveContentRating(array $releaseDate): string
     {
-        $response = $this->tmdb->get(self::BASE_URL . "/{$id}", ['api_key' => env('TMDB_API_KEY')]);
-
-        return $response->json();
-    }
-
-    public function getMovieCredit(int $id)
-    {
-        $response = $this->tmdb->get(self::BASE_URL . "/{$id}/credits", ['api_key' => env('TMDB_API_KEY')]);
-
-        return $response->json();
-    }
-
-    private function getContentRating(int $id): string
-    {
-        $response = $this->tmdb->get(self::BASE_URL . "/{$id}/release_dates", ['api_key' => env('TMDB_API_KEY')]);
-        $releaseDateData = $response->json();
-
-        if (empty($releaseDateData['results'])) {
+        if (empty($releaseDate['results'])) {
             return 'Not Rated';
         }
 
         $fallback = null;
 
         // Priority 1: US theatrical release (type 3)
-        foreach ($releaseDateData['results'] as $data) {
+        foreach ($releaseDate['results'] as $data) {
             if ($data['iso_3166_1'] === 'US') {
                 foreach ($data['release_dates'] as $release) {
                     if (!empty($release['certification'])) {
@@ -104,7 +87,7 @@ class MovieController extends Controller
         }
             
         // Priority 2: Any country's theatrical release (type 3)
-        foreach ($releaseDateData['results'] as $data) {
+        foreach ($releaseDate['results'] as $data) {
             foreach ($data['release_dates'] as $release) {
                 if (!empty($release['certification'])) {
                     if ($release['type'] === 3) {
@@ -118,9 +101,9 @@ class MovieController extends Controller
         return $fallback ?? 'Not Rated';
     }
 
-    private function getMovieRuntime(array $movieData): string
+    private function resolveRuntime(array $movieDetails): string
     {
-        $movieRuntimeInMin = $movieData['runtime'];
+        $movieRuntimeInMin = $movieDetails['runtime'];
 
         if (empty($movieRuntimeInMin)) {
             return 'N/A';
@@ -134,9 +117,9 @@ class MovieController extends Controller
         return $formatted;
     }
 
-    private function getMovieReleaseYear(array $movieData):int
+    private function resolveReleaseYear(array $movieDetails):int
     {
-        $releaseDate = $movieData['release_date'];
+        $releaseDate = $movieDetails['release_date'];
 
         $year = Carbon::parse($releaseDate)->year;
 

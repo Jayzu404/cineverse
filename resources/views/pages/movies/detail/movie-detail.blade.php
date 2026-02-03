@@ -8,8 +8,8 @@
                 <div class="absolute inset-0 bg-gradient-to-br from-orange-600/20 to-red-900/20 blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
                 <div class="relative aspect-[2/3] bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-sm overflow-hidden shadow-2xl">
                     <img 
-                        src="{{$imageBaseUrl . '/' . $movieData['poster_path']}}"
-                        alt="{{ $movieData['title'] }}"
+                        src="{{$imageBaseUrl . '/' . $movieDetails['poster_path']}}"
+                        alt="{{ $movieDetails['title'] }}"
                         class="w-full h-full object-cover opacity-90"
                     />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -21,7 +21,7 @@
                 <!-- Title -->
                 <div>
                     <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-tight">
-                      {{ $movieData['title'] }}
+                      {{ $movieDetails['title'] }}
                     </h1>
                     <div class="flex items-center gap-3 text-neutral-400 text-xs">
                         <span class="px-2 py-0.5 border border-neutral-700 rounded text-xs">{{ $contentRate }}</span>
@@ -50,21 +50,21 @@
 
                 <!-- Tagline -->
                 <div class="border-l-2 border-orange-600 pl-3">
-                    <p class="text-base italic text-neutral-300">{{ $movieData['tagline'] }}</p>
+                    <p class="text-base italic text-neutral-300">{{ $movieDetails['tagline'] }}</p>
                 </div>
 
                 <!-- Overview -->
                 <div>
                     <h2 class="text-base font-semibold mb-2">Overview</h2>
                     <p class="text-neutral-300 leading-relaxed text-sm">
-                      {{ $movieData['overview'] }}
+                      {{ $movieDetails['overview'] }}
                     </p>  
                 </div>
 
                 <!-- Genres -->
                 <div class="flex flex-wrap gap-2">
-                  @if(isset($movieData['genres']) && !empty($movieData['genres']))
-                    @foreach($movieData['genres'] as $genre)
+                  @if(isset($movieDetails['genres']) && !empty($movieDetails['genres']))
+                    @foreach($movieDetails['genres'] as $genre)
                         <span class="px-3 py-1 bg-neutral-900 rounded-full text-xs border border-neutral-800">{{ $genre['name'] }}</span>
                       @endforeach
                   @endif
@@ -74,8 +74,8 @@
                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-neutral-800">
                     <div>
                       <div class="text-xs text-neutral-400 mb-1">Director</div>
-                        @if(isset($movieCredits['crew']) && !empty($movieCredist['crew']))
-                          @foreach($movieCredits['crew'] as $crew)
+                        @if(isset($credits['crew']) && !empty($credits['crew']))
+                          @foreach($credits['crew'] as $crew)
                             @if($crew['job'] === 'Director')
                               <div class="font-semibold text-sm">{{ $crew['name'] }}</div>
                             @endif
@@ -84,8 +84,8 @@
                     </div>
                     <div>
                         <div class="text-xs text-neutral-400 mb-1">Screenplay</div>
-                          @if(isset($movieCredits['crew']) && !empty($movieCredits['crew']))
-                            @foreach($movieCredits['crew'] as $crew)
+                          @if(isset($credits['crew']) && !empty($credits['crew']))
+                            @foreach($credits['crew'] as $crew)
                               @if($crew['job'] === 'Screenplay')
                                 <div class="font-semibold text-sm">{{ $crew['name'] }}</div>
                               @endif
@@ -119,7 +119,7 @@
     <h3 class="text-xl font-semibold text-black ml-1 leading-none">Casts</h3>
 
     <div class="casts-list flex gap-5 overflow-x-scroll scrollbar-hide flex-1 px-1 py-2">
-        @foreach($movieCredits['cast'] as $cast)
+        @foreach($credits['cast'] as $cast)
             <div class="card shrink-0 w-[160px] rounded-xl overflow-hidden shadow-md">
                 <img src="https://image.tmdb.org/t/p/w500/{{ $cast['profile_path'] }}" alt="{{ $cast['name'] }}" loading="lazy" class="h-auto w-full object-contain">        
 
